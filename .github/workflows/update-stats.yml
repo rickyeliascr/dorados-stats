@@ -1,17 +1,30 @@
 name: Update Dorados Stats
 
-# DST handling: GitHub Actions cron runs in UTC and ignores DST.
-# Madrid is UTC+1 in winter (CET) and UTC+2 in summer (CEST).
-# 16:00 Madrid = 15:00 UTC (winter) or 14:00 UTC (summer).
-# We schedule BOTH and use a guard step to only proceed when it's actually 16:00 in Madrid.
+# Hourly polling 08:00–18:00 Madrid time so we pick up Baseball Reference's
+# daily update within ~1 hour of it being posted (BR usually updates by 16:00
+# Madrid, but the exact time varies).
+#
+# DST handling: GitHub Actions cron runs in UTC and ignores DST. Madrid is
+# UTC+1 in winter (CET) and UTC+2 in summer (CEST). Madrid 08:00–18:00 maps
+# to UTC 06:00–16:00 in summer and UTC 07:00–17:00 in winter. We schedule
+# the union (UTC 06:00–17:00, 12 hourly triggers) and let the guard step
+# below filter to only proceed when Madrid local hour is 8–18. In any season
+# this yields ~11 actual scrapes per day.
+#
+# The commit step only commits when the file actually changed, so most of
+# those runs exit silently and don't create noise in commit history.
 on:
   schedule:
-    - cron: "0 14 * * *"   # 16:00 Madrid in summer (CEST)
-    - cron: "0 15 * * *"   # 16:00 Madrid in winter (CET)
-  workflow_dispatch:        # allow manual runs from the Actions tab
+    - cron: "0 6-17 * * *"   # hourly, 06:00–17:00 UTC
+  workflow_dispatch:          # allow manual runs from the Actions tab
 
 permissions:
   contents: write            # needed to commit the updated file back to the repo
+
+# Opt into Node.js 24 now so the deprecation warning for actions/checkout@v4
+# and actions/setup-python@v5 goes away. Becomes the default after June 2026.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 concurrency:
   group: dorados-stats
@@ -22,14 +35,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check that it's 16:00 in Madrid right now
+      - name: Check that Madrid local hour is in 08:00–18:00 window
         id: madrid_check
         run: |
           MADRID_HOUR=$(TZ='Europe/Madrid' date '+%H')
           MADRID_TIME=$(TZ='Europe/Madrid' date '+%Y-%m-%d %H:%M %Z')
           echo "Madrid local time: $MADRID_TIME"
-          if [ "$MADRID_HOUR" != "16" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            echo "Not 16:00 in Madrid yet (current hour: $MADRID_HOUR). Exiting cleanly."
+          # Strip leading zero so bash arithmetic doesn't interpret 08/09 as octal.
+          HOUR_NUM=$((10#$MADRID_HOUR))
+          if { [ "$HOUR_NUM" -lt 8 ] || [ "$HOUR_NUM" -gt 18 ]; } && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            echo "Outside 08:00–18:00 Madrid window (current hour: $MADRID_HOUR). Exiting cleanly."
             echo "should_run=false" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=true" >> "$GITHUB_OUTPUT"
