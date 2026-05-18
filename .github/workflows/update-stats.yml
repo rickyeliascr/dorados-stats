@@ -15,7 +15,11 @@ name: Update Dorados Stats
 # those runs exit silently and don't create noise in commit history.
 on:
   schedule:
-    - cron: "0 6-17 * * *"   # hourly, 06:00–17:00 UTC
+    # We fire at minute :23 (not :00) because GitHub's scheduler is heavily
+    # overloaded at the top of every hour and frequently skips runs that are
+    # scheduled at minute 0. :23 is well off the popular minutes (:00, :15,
+    # :30, :45) and reliability is much higher.
+    - cron: "23 6-17 * * *"   # hourly at :23, 06:23–17:23 UTC
   workflow_dispatch:          # allow manual runs from the Actions tab
 
 permissions:
