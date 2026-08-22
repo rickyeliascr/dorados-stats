@@ -1,7 +1,7 @@
 # Dorados de Chihuahua — 2026 LMB Season Stats
 
 **Source:** [Baseball Reference team page](https://www.baseball-reference.com/register/team.cgi?id=1181cb66)
-**Last updated:** 2026-08-22 09:49 CEST
+**Last updated:** 2026-08-22 10:51 CEST
 **Update cadence:** Daily at 16:00 Madrid time (overwrite-in-place snapshot, via GitHub Actions)
 
 ---
