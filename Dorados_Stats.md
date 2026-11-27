@@ -1,7 +1,7 @@
 # Dorados de Chihuahua — 2026 LMB Season Stats
 
 **Source:** [Baseball Reference team page](https://www.baseball-reference.com/register/team.cgi?id=1181cb66)
-**Last updated:** 2026-11-22 15:43 CET
+**Last updated:** 2026-11-27 17:49 CET
 **Update cadence:** Daily at 16:00 Madrid time (overwrite-in-place snapshot, via GitHub Actions)
 
 ---
@@ -13,7 +13,12 @@
 ## Team Record
 
 2026 Dorados de Chihuahua  
-Record: 35-58
+Record: 35-58,
+    Finished
+    10th
+    
+    
+      out of 20 teams
 
 ## Batting Stats (Season to Date)
 
